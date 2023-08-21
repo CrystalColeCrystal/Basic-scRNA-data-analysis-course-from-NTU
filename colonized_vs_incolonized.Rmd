@@ -1,0 +1,72 @@
+---
+title: "NeoSkin_CTvsbact"
+output: html_notebook
+Accession number : GSE206891
+---
+
+
+```{r}
+#importing the packages
+library(dplyr)
+library(Seurat)
+library(patchwork)
+library(svglite)
+library(ggplot2)
+library(data.table)
+```
+
+```{r}
+#setting up and merging Seurat objects
+zsgreen_neg <- Read10X(data.dir = "C:/Users/Mary/OneDrive/Рабочий стол/Seurat_sc_class/Mice/neg")
+zsgreen_neg<- CreateSeuratObject(counts = zsgreen_neg, project = "AW137_zsgreen_neg", min.cells = 3, min.features = 200)
+zsgreen_pos <- Read10X(data.dir = "C:/Users/Mary/OneDrive/Рабочий стол/Seurat_sc_class/Mice/pos")
+zsgreen_pos<- CreateSeuratObject(counts = zsgreen_pos, project = "AW137_zsgreen_pos", min.cells = 3, min.features = 200)
+CT_neo<-Read10X(data.dir = "C:/Users/Mary/OneDrive/Рабочий стол/Seurat_sc_class/Mice/neo")
+CT_neo<- CreateSeuratObject(counts = CT_neo, project = "AW137_CT_neo", min.cells = 3, min.features = 200)
+#merging
+NeoSkin_CTvsbact.data<-merge(x=zsgreen_neg, y=c(zsgreen_pos,CT_neo), add.cell.id=c("zsgreen_neg","zsgreen_pos","CT_neo"), project="AW137", merge.data = TRUE)
+```
+
+```{r}
+##subsetting QC features
+NeoSkin_CTvsbact.data[["percent.mt"]] <- PercentageFeatureSet(NeoSkin_CTvsbact.data, pattern = "^mt-")
+VlnPlot(NeoSkin_CTvsbact.data, features = c("nFeature_RNA", "nCount_RNA", "percent.mt"), ncol = 3)
+NeoSkin_CTvsbact.data<- subset(NeoSkin_CTvsbact.data, subset = nFeature_RNA > 200 & nFeature_RNA < 5200 & percent.mt < 12)
+```
+
+```{r}
+#data normalization
+NeoSkin_CTvsbact.data <- NormalizeData(NeoSkin_CTvsbact.data, normalization.method = "LogNormalize", scale.factor = 10000)
+NeoSkin_CTvsbact.data<- FindVariableFeatures(NeoSkin_CTvsbact.data, selection.method = "vst", nfeatures = 2000)
+all.genes <- rownames(NeoSkin_CTvsbact.data)
+NeoSkin_CTvsbact.data <- ScaleData(NeoSkin_CTvsbact.data, features = all.genes)
+NeoSkin_CTvsbact.data <- RunPCA(NeoSkin_CTvsbact.data, features = VariableFeatures(object = NeoSkin_CTvsbact.data))
+##PCA numbers were determined by elbowplot
+ElbowPlot(NeoSkin_CTvsbact.data, ndims = 30, reduction = "pca")
+NeoSkin_CTvsbact.data <- FindNeighbors(NeoSkin_CTvsbact.data, dims = 1:25)
+NeoSkin_CTvsbact.data <- FindClusters(NeoSkin_CTvsbact.data, resolution = 1)
+NeoSkin_CTvsbact.data <- RunUMAP(NeoSkin_CTvsbact.data, dims = 1:25)
+```
+```{r}
+#renaming the clusters
+NeoSkin_CTvsbact.data<-RenameIdents(object=NeoSkin_CTvsbact.data, "0"="DC1","1"="LC","2"="CD11b-hi DC2","3"="CD11b-hi DC2","4"="CD11b-lo DC2","5"="CD11b-hi DC2","6"="DC1","7"="CD11b-hi DC2","8"="CD11b-hi DC2", "9"="LC","10"="CD11b-hi DC2","11"="CD11b-hi DC2","12"="DC1","13"="CCR7+ DC","14"="NA","15"="NA","16"="NA","17"="NA","18"="LC","19"="DC1","20"="NA","21"="CD11b-hi DC2","22"="CD11b-hi DC2","23"="DC1","24"="NA","25"="NA","26"="NA","27"="NA","28"="CD11b-hi DC2","29"="NA")
+
+##remove all population NA
+NeoSkin_CTvsbact.data<-subset(NeoSkin_CTvsbact.data, ident="NA",invert=TRUE)
+NeoSkin_CTvsbact.data$ID<-NeoSkin_CTvsbact.data@active.ident
+
+DimPlot(NeoSkin_CTvsbact.data, label=TRUE)
+```
+
+
+
+```{r}
+#splitting the object
+NeoSkin_CTvsbact.data<-SetIdent(NeoSkin_CTvsbact.data, value = NeoSkin_CTvsbact.data@meta.data$orig.ident)
+NeoSkin_CT<-subset(NeoSkin_CTvsbact.data, ident="AW137_CT_neo")
+NeoSkin_colo<-subset(NeoSkin_CTvsbact.data, ident="AW137_CT_neo",invert=TRUE)
+```
+```{r}
+NeoSkin_colo<-SetIdent(NeoSkin_colo, value = NeoSkin_colo@meta.data$ID)
+DimPlot(NeoSkin_colo, label=TRUE, split.by="orig.ident")
+```

@@ -1,0 +1,10 @@
+﻿id,name,read,pattern,sequence,feature_type
+CD103,CD103_ADT,R2,^(BC),TTCATTAGCCCGCTG,Antibody Capture
+CD11B,CD11B_ADT,R2,^(BC),TGAAGGCTCATTTGT,Antibody Capture
+CD301B,CD301B_ADT,R2,^(BC),CTTGCCTTGCGATTT,Antibody Capture
+PDL-1,PDL-1_ADT,R2,^(BC),TCGATTCCACCAACT,Antibody Capture
+CD86,CD86_ADT,R2,^(BC),CTGGATTTGTGTATC,Antibody Capture
+EpCAM,EpCAM_ADT,R2,^(BC),ACCCGCGTTAGTATG,Antibody Capture
+A0301_CT,CT_subpop,R2,^(BC),ACCCACCAGTAAGAC,Antibody Capture
+A0302_SE,SEpos_subpop,R2,^(BC),GGTCGAGAGCATTCA,Antibody Capture
+A0304_Seneg,SEneg_subpop,R2,^(BC),AAAGCATTCTTCACG,Antibody Capture
